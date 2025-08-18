@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "modelo-mcp.fullname" . }}
+  labels:
+    {{- include "modelo-mcp.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: 8080
+      name: http
+  selector:
+    {{- include "modelo-mcp.selectorLabels" . | nindent 4 }}

@@ -1,0 +1,112 @@
+version: '3.8'
+
+services:
+  {{MCP_NAME}}:
+    build: .
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+    environment:
+      - ENVIRONMENT=development
+      - DATABASE_URL=postgres://user:password@postgres:5432/{{DATABASE_NAME}}?sslmode=disable
+      - CLICKHOUSE_URL=clickhouse:9000
+      - REDIS_URL=redis://redis:6379/0
+      - NATS_URL=nats://nats:4222
+      - JWT_SECRET=your-jwt-secret-key
+      - AI_API_KEY=${AI_API_KEY}
+    depends_on:
+      - postgres
+      - redis
+      - nats
+      - clickhouse
+    networks:
+      - {{MCP_NAME}}-network
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB={{DATABASE_NAME}}
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    networks:
+      - {{MCP_NAME}}-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - {{MCP_NAME}}-network
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    ports:
+      - "9000:9000"
+      - "8123:8123"
+    environment:
+      - CLICKHOUSE_DB={{CLICKHOUSE_DATABASE}}
+      - CLICKHOUSE_USER=default
+      - CLICKHOUSE_PASSWORD=
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+    networks:
+      - {{MCP_NAME}}-network
+
+  nats:
+    image: nats:2.10-alpine
+    command: ["-js", "-m", "8222"]
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    networks:
+      - {{MCP_NAME}}-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    networks:
+      - {{MCP_NAME}}-network
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./configs/grafana:/etc/grafana/provisioning
+    networks:
+      - {{MCP_NAME}}-network
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - {{MCP_NAME}}-network
+
+volumes:
+  postgres-data:
+  redis-data:
+  clickhouse-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  {{MCP_NAME}}-network:
+    driver: bridge

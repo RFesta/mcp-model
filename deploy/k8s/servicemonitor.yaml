@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: modelo-mcp
+  namespace: vertikon
+spec:
+  selector:
+    matchLabels:
+      app: modelo-mcp
+  namespaceSelector:
+    matchNames: ["vertikon"]
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s

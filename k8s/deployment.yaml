@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{MCP_NAME}}
+  namespace: {{NAMESPACE}}
+  labels:
+    app: {{MCP_NAME}}
+    version: v1.0.0
+    component: marketing-platform
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: {{MCP_NAME}}
+  template:
+    metadata:
+      labels:
+        app: {{MCP_NAME}}
+        version: v1.0.0
+    spec:
+      containers:
+      - name: {{MCP_NAME}}
+        image: {{DOCKER_IMAGE}}:{{IMAGE_TAG}}
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 9090
+          name: metrics
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{MCP_NAME}}-secrets
+              key: database-url
+        - name: REDIS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: {{MCP_NAME}}-config
+              key: redis-url
+        - name: CLICKHOUSE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: {{MCP_NAME}}-config
+              key: clickhouse-url
+        - name: NATS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: {{MCP_NAME}}-config
+              key: nats-url
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{MCP_NAME}}-secrets
+              key: jwt-secret
+        - name: AI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{MCP_NAME}}-secrets
+              key: ai-api-key
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 65534
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+      securityContext:
+        fsGroup: 65534

@@ -1,0 +1,79 @@
+# {{MCP_NAME}} Configuration Template
+service_name: "{{MCP_NAME}}"
+environment: "development"
+http_port: "8080"
+metrics_port: "9090"
+
+# Database Configuration
+database:
+  url: "postgres://user:password@localhost:5432/{{DATABASE_NAME}}?sslmode=disable"
+  max_open_conns: 25
+  max_idle_conns: 25
+  conn_max_lifetime: "5m"
+
+# ClickHouse Configuration
+clickhouse:
+  url: "localhost:9000"
+  database: "{{CLICKHOUSE_DATABASE}}"
+  username: "default"
+  password: ""
+
+# Redis Configuration
+redis:
+  url: "redis://localhost:6379/0"
+  db: 0
+  max_retries: 3
+
+# NATS Configuration
+nats:
+  url: "nats://localhost:4222"
+  cluster: "vertikon-cluster"
+
+# JWT Configuration
+jwt:
+  secret: "your-jwt-secret-key"
+  issuer: "{{MCP_NAME}}"
+  audience: "vertikon-platform"
+
+# Security Configuration
+security:
+  allowed_origins:
+    - "http://localhost:3000"
+    - "https://app.vertikon.com"
+  api_key: "your-api-key"
+
+# Rate Limiting Configuration
+rate_limit:
+  enabled: true
+  rps: 100
+  burst: 200
+
+# AI Configuration
+ai:
+  enabled: true
+  provider: "openai"
+  api_key: "${AI_API_KEY}"
+  model: "gpt-4"
+  base_url: ""
+
+# Service-specific configuration (customize per MCP)
+{{SERVICE_CONFIG_KEY}}:
+  {{SERVICE_CONFIG_FIELD_1}}: "{{SERVICE_CONFIG_VALUE_1}}"
+  {{SERVICE_CONFIG_FIELD_2}}: {{SERVICE_CONFIG_VALUE_2}}
+  {{SERVICE_CONFIG_FIELD_3}}:
+    - "{{SERVICE_CONFIG_ARRAY_VALUE_1}}"
+    - "{{SERVICE_CONFIG_ARRAY_VALUE_2}}"
+
+# Development-specific settings
+development:
+  debug: true
+  log_level: "DEBUG"
+  enable_pprof: true
+  auto_migrate: true
+
+# Production-specific settings (override in config.prod.yaml)
+production:
+  debug: false
+  log_level: "INFO"
+  enable_pprof: false
+  auto_migrate: false

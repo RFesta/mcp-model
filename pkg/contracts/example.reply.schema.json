@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ExampleReply",
+  "type": "object",
+  "properties": {
+    "echo": {
+      "type": "string"
+    },
+    "service": {
+      "type": "string"
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "echo",
+    "service",
+    "ts"
+  ],
+  "additionalProperties": false
+}

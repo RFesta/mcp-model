@@ -1,0 +1,25 @@
+services:
+  nats:
+    image: nats:2.10
+    command: -js -m 8222
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+
+  modelo-mcp:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    environment:
+      SERVICE_NAME: modelo-mcp
+      ENV: dev
+      HTTP_PORT: 8080
+      NATS_URL: nats://nats:4222
+      NATS_JS_STREAM: MCP_MODELO
+      NATS_DURABLE: modelo-consumer
+      SUBJECT_REQUEST: mcp.modelo.example.request
+      SUBJECT_REPLY: mcp.modelo.example.reply
+    ports:
+      - "8080:8080"
+    depends_on:
+      - nats
